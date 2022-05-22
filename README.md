@@ -1,6 +1,6 @@
 # dmi-to-png
 
-This project converts weather icons from [DMI](https://www.dmi.dk/dmis-vejrprodukter/vejrsymboler/) to a PNG format, so they can be used for [pillow](https://pillow.readthedocs.io/en/stable/) on an RPi ink screen.
+This project converts weather icons from [DMI](https://www.dmi.dk/) to a PNG format, so they can be used for [pillow](https://pillow.readthedocs.io/en/stable/) on an RPi ink screen.
 
 ## How to use
 

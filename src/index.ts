@@ -1,15 +1,12 @@
 import path from 'path'
 import puppeteer from 'puppeteer'
 import fs from 'fs'
+import symbolIds from '../data/symbolIds.json'
 
-const outputSize = 64
+const outputSize = 104
 
 const outDir = path.resolve(__dirname, '..', 'out')
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
-
-const symbolIds = [
-  1, 2, 3, 45, 60, 63, 68, 69, 70, 73, 80, 81, 83, 84, 85, 86, 101, 102, 103, 160, 180, 181, 183, 184, 185, 186,
-]
 
 main()
 
@@ -39,7 +36,7 @@ async function main() {
 
         const style = document.querySelector('style')!
         style.innerHTML = `
-        #Sun {
+        #Sun, #Flash {
           fill: red;
         }
       `
@@ -53,6 +50,7 @@ async function main() {
 
     await page.screenshot({
       omitBackground: true,
+      type: 'png',
       path: path.resolve(outDir, `${id}.png`),
     })
 

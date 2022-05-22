@@ -1,7 +1,8 @@
 {
   "extends": "@tsconfig/node18",
   "compilerOptions": {
-    "lib": ["DOM"]
+    "lib": ["DOM"],
+    "resolveJsonModule": true
   },
   "ts-node": {
     "typeCheck": false,
