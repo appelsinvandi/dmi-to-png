@@ -1,9 +1,10 @@
-import path from 'path'
-import puppeteer from 'puppeteer'
+import axios from 'axios'
+import { createCanvas, loadImage } from 'canvas'
 import fs from 'fs'
+import path from 'path'
 import symbolIds from '../data/symbolIds.json'
 
-const outputSize = 104
+const outputSize = 40
 
 const outDir = path.resolve(__dirname, '..', 'out')
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
@@ -11,49 +12,41 @@ if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 main()
 
 async function main() {
-  const browser = await puppeteer.launch({
-    headless: true,
-    defaultViewport: {
-      width: outputSize,
-      height: outputSize,
-    },
-  })
-
   for (const id of symbolIds) {
     await paintPng(id)
   }
 
-  await browser.close()
-
   async function paintPng(id: number) {
-    const page = await browser.newPage()
-    await page.goto(`https://www.dmi.dk/fileadmin/templates/img/${id}.svg`)
+    const svg = await axios(`https://www.dmi.dk/fileadmin/templates/img/${id}.svg`)
+    const svgString = String(svg.data)
+      .replace(/<style>[\s\S]*?<\/style>/gi, '<style>#Sun, #Flash { fill: red; }</style>')
+      .replace(/^  <g id="\w+-(?:fill|fill-light)">[\s\S]*?^  <\/g>/gim, '')
 
-    await page.evaluate(
-      (outputSize) => {
-        document.querySelectorAll('g[id$="-fill"]').forEach((g) => g.remove())
-        document.querySelectorAll('g[id$="-fill-light"]').forEach((g) => g.remove())
+    const img = await loadImage(`data:image/svg+xml,${svgString}`)
+    img.width = outputSize
+    img.height = outputSize
 
-        const style = document.querySelector('style')!
-        style.innerHTML = `
-        #Sun, #Flash {
-          fill: red;
-        }
-      `
+    const canvas = createCanvas(img.width, img.height)
+    const ctx = canvas.getContext('2d')
 
-        const svg = document.querySelector<SVGElement>('svg')!
-        svg.setAttribute('width', String(outputSize))
-        svg.setAttribute('height', String(outputSize))
-      },
-      [outputSize]
-    )
+    ctx.drawImage(img, 0, 0)
 
-    await page.screenshot({
-      omitBackground: true,
-      type: 'png',
-      path: path.resolve(outDir, `${id}.png`),
-    })
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      if (imageData.data[i] > 250) {
+        imageData.data[i] = 255
+      } else {
+        imageData.data[i] = 0
+      }
 
-    await page.close()
+      imageData.data[i + 1] = 0
+      imageData.data[i + 2] = 0
+
+      if (imageData.data[i + 3] >= 134) imageData.data[i + 3] = 255
+      else imageData.data[i + 3] = 0
+    }
+    ctx.putImageData(imageData, 0, 0)
+
+    fs.writeFileSync(path.resolve(outDir, `${id}.png`), canvas.toBuffer())
   }
 }
