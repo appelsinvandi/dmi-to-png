@@ -4,7 +4,10 @@ import fs from 'fs'
 import path from 'path'
 import symbolIds from '../data/symbolIds.json'
 
+// The width & height of the output image
 const outputSize = 40
+// The line thickness of the output image. Must be between 1 and 255 (both inclusive.)
+const outputThickness = 134
 
 const outDir = path.resolve(__dirname, '..', 'out')
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
@@ -42,7 +45,7 @@ async function main() {
       imageData.data[i + 1] = 0
       imageData.data[i + 2] = 0
 
-      if (imageData.data[i + 3] >= 134) imageData.data[i + 3] = 255
+      if (imageData.data[i + 3] >= outputThickness) imageData.data[i + 3] = 255
       else imageData.data[i + 3] = 0
     }
     ctx.putImageData(imageData, 0, 0)
