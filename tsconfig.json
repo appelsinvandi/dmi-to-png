@@ -1,0 +1,10 @@
+{
+  "extends": "@tsconfig/node18",
+  "compilerOptions": {
+    "lib": ["DOM"]
+  },
+  "ts-node": {
+    "typeCheck": false,
+    "transpileOnly": true
+  }
+}
