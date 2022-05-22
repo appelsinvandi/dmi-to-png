@@ -2,6 +2,8 @@ import path from 'path'
 import puppeteer from 'puppeteer'
 import fs from 'fs'
 
+const outputSize = 64
+
 const outDir = path.resolve(__dirname, '..', 'out')
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
@@ -15,8 +17,8 @@ async function main() {
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: {
-      width: 24,
-      height: 24,
+      width: outputSize,
+      height: outputSize,
     },
   })
 
@@ -30,21 +32,24 @@ async function main() {
     const page = await browser.newPage()
     await page.goto(`https://www.dmi.dk/fileadmin/templates/img/${id}.svg`)
 
-    await page.evaluate(() => {
-      document.querySelectorAll('g[id$="-fill"]').forEach((g) => g.remove())
-      document.querySelectorAll('g[id$="-fill-light"]').forEach((g) => g.remove())
+    await page.evaluate(
+      (outputSize) => {
+        document.querySelectorAll('g[id$="-fill"]').forEach((g) => g.remove())
+        document.querySelectorAll('g[id$="-fill-light"]').forEach((g) => g.remove())
 
-      const style = document.querySelector('style')!
-      style.innerHTML = `
+        const style = document.querySelector('style')!
+        style.innerHTML = `
         #Sun {
           fill: red;
         }
       `
 
-      const svg = document.querySelector<SVGElement>('svg')!
-      svg.setAttribute('width', '24')
-      svg.setAttribute('height', '24')
-    })
+        const svg = document.querySelector<SVGElement>('svg')!
+        svg.setAttribute('width', String(outputSize))
+        svg.setAttribute('height', String(outputSize))
+      },
+      [outputSize]
+    )
 
     await page.screenshot({
       omitBackground: true,
