@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { createCanvas, loadImage } from 'canvas'
+import { createCanvas, loadImage, PNGStream } from 'canvas'
 import fs from 'fs'
 import path from 'path'
 import symbolIds from '../data/symbolIds.json'
@@ -36,11 +36,8 @@ async function main() {
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
     for (let i = 0; i < imageData.data.length; i += 4) {
-      if (imageData.data[i] > 250) {
-        imageData.data[i] = 255
-      } else {
-        imageData.data[i] = 0
-      }
+      if (imageData.data[i] > 250) imageData.data[i] = 255
+      else imageData.data[i] = 0
 
       imageData.data[i + 1] = 0
       imageData.data[i + 2] = 0
@@ -50,6 +47,16 @@ async function main() {
     }
     ctx.putImageData(imageData, 0, 0)
 
-    fs.writeFileSync(path.resolve(outDir, `${id}.png`), canvas.toBuffer())
+    canvas
+      .createPNGStream({
+        palette: new Uint8ClampedArray(
+          [
+            [0, 0, 0, 0],
+            [255, 0, 0, 255],
+            [0, 0, 0, 255],
+          ].flat()
+        ),
+      })
+      .pipe(fs.createWriteStream(path.resolve(outDir, `${id}.png`)))
   }
 }
