@@ -36,17 +36,18 @@ async function main() {
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
     for (let i = 0; i < imageData.data.length; i += 4) {
-      if (imageData.data[i] > 250) {
+      if (imageData.data[i + 3] >= outputThickness) imageData.data[i + 3] = 255
+      else imageData.data[i + 3] = 0
+
+      if (imageData.data[i] > 250 && imageData.data[i + 3] === 255) {
         imageData.data[i] = 255
+        imageData.data[i + 3] = 127
       } else {
         imageData.data[i] = 0
       }
 
       imageData.data[i + 1] = 0
       imageData.data[i + 2] = 0
-
-      if (imageData.data[i + 3] >= outputThickness) imageData.data[i + 3] = 255
-      else imageData.data[i + 3] = 0
     }
     ctx.putImageData(imageData, 0, 0)
 
